@@ -39,15 +39,8 @@ UserSchema.methods.generateJWT = function() {
         username: this.username,
         exp: parseInt(expiry_date.getTime()/1000)
         
-    })
+    }, secret)
     
-}
-
-UserSchema.methods.authJSON = function() {
-    return {
-        username: this.username,
-        token: this.generateJWT(),
-    }
 }
 
 mongoose.model('User', UserSchema)
