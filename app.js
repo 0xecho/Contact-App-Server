@@ -9,7 +9,6 @@ var fs = require('fs'),
     passport = require('passport'),
     errorhandler = require('errorhandler'),
     mongoose = require('mongoose');
-    user = require('./models/User')
 
 var isProduction = process.env.NODE_ENV === 'production';
 
@@ -39,6 +38,8 @@ if(isProduction){
   mongoose.set('debug', true);
 }
 
+require('./models/User');
+
 app.use(require('./routes'));
 
 /// catch 404 and forward to error handler
@@ -59,6 +60,7 @@ if (!isProduction) {
     res.status(err.status || 500);
 
     res.json({'errors': {
+      success: false,
       message: err.message,
       error: err
     }});
@@ -70,6 +72,7 @@ if (!isProduction) {
 app.use(function(err, req, res, next) {
   res.status(err.status || 500);
   res.json({'errors': {
+    success: false,
     message: err.message,
     error: {}
   }});

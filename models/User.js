@@ -20,13 +20,13 @@ const crypto = require("crypto")
 UserSchema.plugin(mongooseUnique, {message: 'is taken.'})
 
 UserSchema.methods.setPassword = function(password) {
-    this.salt = crypto.randomBytes(16).toString('hex')
-    this.hash = crypto.pbkdf2Sync(password, this.salt, 1000, 512, 'sha512').toString('hex')
+    this.password_salt = crypto.randomBytes(16).toString('hex')
+    this.password_hash = crypto.pbkdf2Sync(password, this.password_salt, 1000, 512, 'sha512').toString('hex')
 }
 
 UserSchema.methods.validPassword = function(password) {
-    this.checkPass = crypto.pbkdf2Sync(password, this.salt, 1000, 512, 'sha512').toString('hex')
-    return this.hash === this.checkPass
+    this.checkPass = crypto.pbkdf2Sync(password, this.password_salt, 1000, 512, 'sha512').toString('hex')
+    return this.password_hash === this.checkPass
 }
 
 UserSchema.methods.generateJWT = function() {
@@ -43,4 +43,4 @@ UserSchema.methods.generateJWT = function() {
     
 }
 
-mongoose.model('User', UserSchema)
+module.export = mongoose.model('User', UserSchema)

@@ -19,7 +19,7 @@ function validateUser(req, res, next)
         next()
         
     } else {
-        res.json({"error":"You need to Login first."})
+        res.json({"success":false,"error":"You need to Login first."})
     }
         
     
