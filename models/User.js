@@ -11,7 +11,7 @@ const UserSchema = new mongoose.Schema({
     password_hash : String,
     password_salt: String,
     contact_ids : [{type: mongoose.Schema.Types.ObjectId, ref:"Contact"}],
-    profile_picture : {type: mongoose.Schema.Types.ObjectId, ref:"Image"},
+    profile_picture : String,
     registered_tags : [{type: mongoose.Schema.Types.ObjectId, ref:"Tag"}]
 }, {timestamps: true})
 

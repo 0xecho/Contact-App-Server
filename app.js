@@ -23,7 +23,8 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
 app.use(require('method-override')());
-app.use(express.static(__dirname + '/public'));
+// app.use(express.static(__dirname + '/public'));
+app.use(express.static(__dirname + '/uploads'))
 
 app.use(session({ secret: 'conduit', cookie: { maxAge: 60000 }, resave: false, saveUninitialized: false  }));
 
@@ -39,6 +40,8 @@ if(isProduction){
 }
 
 require('./models/User');
+require('./models/Contact');
+require('./models/Tag');
 
 app.use(require('./routes'));
 

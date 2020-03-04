@@ -8,7 +8,7 @@ const ContactSchema = new mongoose.Schema({
     phone_number : String, // TODO: Add Regex
     about: String,
     address: String,
-    image : {type: mongoose.Schema.Types.ObjectId, ref:"Image"},
+    image : String,
     
 }, {timestamps: true})
 

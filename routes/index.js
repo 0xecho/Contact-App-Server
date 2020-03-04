@@ -14,9 +14,15 @@ function validateUser(req, res, next)
     if(token)
     {
         
-        const verify = jwt.verify(token, secret).then((resp)=>console.log(resp)).catch((err)=>console.error(err))
-        console.log(verify)
-        next()
+        try{
+            const verify = jwt.verify(token, secret)
+            console.log(verify)
+            next()
+        } catch (err) {
+            next(err)
+        }
+        
+        
         
     } else {
         res.json({"success":false,"error":"You need to Login first."})
