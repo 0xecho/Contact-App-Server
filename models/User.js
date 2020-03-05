@@ -10,7 +10,6 @@ const UserSchema = new mongoose.Schema({
     email : {type: String, lowercase: true, unique: true, required: [true, "can't be empty!"],match:[/\S+@\S+\.\S+/, 'must on only contain lowercase or uppercase characters!']},
     password_hash : String,
     password_salt: String,
-    contact_ids : [{type: mongoose.Schema.Types.ObjectId, ref:"Contact"}],
     profile_picture : String,
     registered_tags : [{type: mongoose.Schema.Types.ObjectId, ref:"Tag"}]
 }, {timestamps: true})

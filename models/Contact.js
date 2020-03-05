@@ -9,8 +9,11 @@ const ContactSchema = new mongoose.Schema({
     about: String,
     address: String,
     image : String,
-    
-}, {timestamps: true})
+    owner : {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User"
+    }
+}, {timestamps: true,usePushEach: true})
 
 ContactSchema.plugin(mongooseUnique, {message: 'is taken.'})
 
