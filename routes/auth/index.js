@@ -10,7 +10,7 @@ router.post('/login', function (req, res) {
         if (err) {
             next(err)
         }
-        if (!user || !user.validPassword(password)) res.json({ success:true, error: "Username or password Invalid" })
+        if (!user || !user.validPassword(password)) res.json({ success:false, error: "Username or password Invalid" })
         else {
 
             let token = user.generateJWT()

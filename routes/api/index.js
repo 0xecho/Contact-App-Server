@@ -22,16 +22,44 @@ var User = mongoose.model('User')
 var Tag = mongoose.model('Tag')
 
 // TODO only created by this user, AND FILTER BASED ON PARAM
-router.get('/contacts', (req, res, next)=>{ 
-    
+router.get('/contacts', async (req, res, next)=>{ 
+    let filters = null
+    try{
+        filters = req.query['filter'].split(',')    
+    }catch(err){}
     const username = getUserFromTokenOrError(req, res, next).username
     User.findOne({username:username}).then(function(user){  
         user = user.toObject()
         console.log(user._id);
-        Contact.find({owner: user._id},function(err,resp){
-            let contacts = []
+        Contact.find({owner: user._id},async function(err,resp){
+            var contacts = []
             for(let contact of resp){
-                contacts.push(contact._doc)
+                if(filters){
+                    let promiseOfTag = await Tag.find({   
+                        contact: contact._doc._id,
+                        }).then(function(tags){
+                            // console.log("FoUND TAGS");
+                            
+                            let found_tag = 0
+                            for(let tag of tags){
+                                
+                                if(filters.includes(tag._doc.tag_name.toLowerCase()))
+                                {   
+                                    
+                                    found_tag = 1
+                                }
+                            }
+                                
+                            return found_tag
+                        }).catch(err=>console.log(err))
+                        
+                    if(promiseOfTag){
+                        contacts.push(contact._doc)
+                    }
+                    
+                } else {
+                    contacts.push(contact._doc)
+                }
             }
             res.json(contacts)
         })
@@ -83,7 +111,7 @@ router.post('/contact/add', upload.single('image') ,(req, res, next)=>{
             tags.forEach(tag=>{
                 console.log(tag);
                 Tag.create({
-                    tag_name: tag,
+                    tag_name: tag.toLowerCase(),
                     owner: user._doc._id,
                     contact: resp._id,
                     color: "hsla(" + ~~(360 * Math.random()) + "," + "70%,"+ "80%,1)"
@@ -106,61 +134,100 @@ router.get('/contact/:id', (req, res, next)=>{
     User.findOne({username:username}).then(function(user){
         
         user = user.toObject()
-        console.log(user);
         Contact.find({  
             owner: user._id.toString(),
             _id: id
         }).then(function(contact){
-            if(contact){
-                res.json(contact[0])
-            }else {
-                res.json({
-                    success: false,
-                    message: "Contact Not Found"
-                })
-            }
+            
+            Tag.find({contact:contact[0]._id}).then((tags)=>{
+                let all_tags = {
+                    all_tags:[]
+                }
+                for(let i=0;i<tags.length;i++)
+                {
+                    all_tags.all_tags.push(tags[i]._doc)
+                }
+                
+                
+                if(contact.length){
+                    let result = {...contact[0]._doc,...all_tags}
+                    res.json(result)
+                }else {
+                    res.json({
+                        success: false,
+                        message: "Contact Not Found"
+                    })
+                }
+            })
         }).catch(err=>next(err))
     })
 })
 
 // TODO EDIT CONTACT
-// router.post('/contact/edit/:id', (req,res,next) => {
+router.post('/contact/edit/:id', (req,res,next) => {
     
-//     const id = req.params.id
+    const id = req.params.id
+    let updates = req.body.updates
+    // Multipart form data because of the image
+    // if tag in updates add new tag item
+    // for anything else update values directly
+    Contact.findOneAndUpdate({_id:id},{image:"uploads/uploads/image-1583310911247.svg"}).then(resp=>res.json(resp)).catch(err=>next(err))
     
-//     Contact.findOneAndUpdate({_id:id},{image:"uploads/uploads/image-1583310911247.svg"}).then(resp=>res.json(resp)).catch(err=>next(err))
-    
-// })
+})
 
-// TODO DELETE CONTACT
-// router.post('/contact/delete/:id', upload.single('image') ,(req, res, next)=>{ 
+router.get('/contact/delete/:id' , (req, res, next)=>{    
     
+    let id = req.params.id
+    Contact.findById(id).then(contact=>{
+        if(contact){
+            contact.remove().then(status=>{
+                res.json(status)
+            }).catch(err=>{
+                res.json({ 
+                    success: false,
+                    message: "Error deleting contact"
+                })
+            })
+        }else {
+            res.json({
+                success: false,
+                message: "Contact Not Found"
+            })
+        }
+    })
     
-//     // const newContact = new Contact(req.body)
-//     let firstname = req.body.firstname,
-//         lastname = req.body.lastname,
-//         email = req.body.email,
-//         phone_number = req.body.phone_number,
-//         about = req.body.about,
-//         address = req.body.address,
-//         tags = req.body.tags
-//     let image = req.file
-//     const newContact = new Contact({
-//         firstname: firstname,
-//         lastname: lastname,
-//         email: email,
-//         phone_number: phone_number,
-//         about: about,
-//         address: address,
-//         image: image.path,
-//     })
-//     // newContact.save().then(function () {
-//     //     return res.json({success:true})
-//     // }).catch(next)
-//     newContact.save().then(()=>{
-//         res.json({success:true})
-//     }).catch(next)
+})
+
+router.get('/userinfo' , (req, res, next)=>{    
     
-// })
+    const username = getUserFromTokenOrError(req, res, next).username
+    
+    User.findOne({username:username}).then(function(user){
+        let response = {
+            username: user.username,
+            firstname: user.firstname,
+            lastname: user.lastname,
+            email: user.email,
+            profile_picture: user.profile_picture
+        }
+        res.send(response)
+    })
+    
+})
+
+router.post('/updateProfile',upload.single('profile_picture') ,async (req,res,next)=>{
+        
+    const updates = req.body
+    if(req.file!== undefined){
+        updates['profile_picture'] = req.file.path
+    }
+    const username = getUserFromTokenOrError(req, res, next).username
+    User.findOneAndUpdate({username:username}, updates).then(result=>{
+        res.json({
+            success: true
+        })
+    }).catch(next)
+    
+})
 
 module.exports = router;
