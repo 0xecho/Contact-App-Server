@@ -1,4 +1,5 @@
-var http = require('http'),
+var fs = require('fs'),
+    http = require('http'),
     path = require('path'),
     methods = require('methods'),
     express = require('express'),
